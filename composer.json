@@ -34,10 +34,12 @@
   },
   "scripts": {
     "build": [
-      "@test"
+      "@test",
+      "@demo"
     ],
     "test": [
       "vendor/bin/phpunit --configuration=tests/phpunit.xml"
-    ]
+    ],
+    "demo": "demo/build.php"
   }
 }
