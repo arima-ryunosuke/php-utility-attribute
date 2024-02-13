@@ -1,0 +1,43 @@
+{
+  "config": {
+    "platform": {
+      "php": "7.4"
+    }
+  },
+  "name": "ryunosuke/utility-attribute",
+  "type": "library",
+  "description": "utility attributes",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "ryunosuke",
+      "email": "ryunosuke.arima@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "9.*",
+    "ryunosuke/phpunit-extension": "3.*",
+    "ryunosuke/polyfill-attribute": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "ryunosuke\\utility\\attribute\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "ryunosuke\\Test\\": "tests/Test"
+    }
+  },
+  "scripts": {
+    "build": [
+      "@test"
+    ],
+    "test": [
+      "vendor/bin/phpunit --configuration=tests/phpunit.xml"
+    ]
+  }
+}
