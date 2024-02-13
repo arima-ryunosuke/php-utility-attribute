@@ -1,0 +1,19 @@
+<phpunit
+        bootstrap="bootstrap.php"
+        beStrictAboutTestsThatDoNotTestAnything="false"
+        printerClass="\ryunosuke\PHPUnit\Printer\ProgressPrinter"
+        colors="true"
+        columns="140"
+>
+    <testsuites>
+        <testsuite name="tests">
+            <directory>./Test/</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage>
+        <include>
+            <directory suffix=".php">../src</directory>
+        </include>
+    </coverage>
+</phpunit>
