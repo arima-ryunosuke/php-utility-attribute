@@ -21,12 +21,8 @@ see below.
 
 ```php
 <?php
-namespace demo;
+require_once __DIR__ . '/vendor/autoload.php';
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
-use Attribute;
-use JsonSerializable;
 use ryunosuke\utility\attribute\Attribute\AbstractAttribute;
 use ryunosuke\utility\attribute\Attribute\DebugInfo;
 use ryunosuke\utility\attribute\Attribute\Friend;
@@ -84,9 +80,11 @@ $sample    = new SampleClass();
 $subsample = new SampleSubClass();
 
 # Get attribute by following inheritance tree
-var_dump(SampleAttribute1::of($subsample->method(...), 0));/* NULL */
-var_dump(SampleAttribute1::of($subsample->method(...), ReflectionAttribute::FOLLOW_INHERITANCE));/* object(ryunosuke\utility\attribute\ReflectionAttribute)#10 (1) {
-  ["demo\SampleAttribute1"]=>
+var_dump(SampleAttribute1::of($subsample->method(...), 0));
+/*= NULL */
+var_dump(SampleAttribute1::of($subsample->method(...), ReflectionAttribute::FOLLOW_INHERITANCE));
+/*= object(ryunosuke\utility\attribute\ReflectionAttribute)#12 (1) {
+  ["SampleAttribute1"]=>
   array(3) {
     ["a"]=>
     int(1)
@@ -98,18 +96,21 @@ var_dump(SampleAttribute1::of($subsample->method(...), ReflectionAttribute::FOLL
 } */
 
 # Get attribute by seeing class also
-var_dump(SampleAttribute2::of($subsample->method(...), 0));/* NULL */
-var_dump(SampleAttribute2::of($subsample->method(...), ReflectionAttribute::SEE_ALSO_CLASS));/* object(ryunosuke\utility\attribute\ReflectionAttribute)#11 (1) {
-  ["demo\SampleAttribute2"]=>
+var_dump(SampleAttribute2::of($subsample->method(...), 0));
+/*= NULL */
+var_dump(SampleAttribute2::of($subsample->method(...), ReflectionAttribute::SEE_ALSO_CLASS));
+/*= object(ryunosuke\utility\attribute\ReflectionAttribute)#13 (1) {
+  ["SampleAttribute2"]=>
   array(0) {
   }
 } */
 
 # Get attribute without Reflection
-var_dump(SampleAttribute1::arrayOf($sample));/* array(1) {
+var_dump(SampleAttribute1::arrayOf($sample));
+/*= array(1) {
   [0]=>
-  object(ryunosuke\utility\attribute\ReflectionAttribute)#12 (1) {
-    ["demo\SampleAttribute1"]=>
+  object(ryunosuke\utility\attribute\ReflectionAttribute)#14 (1) {
+    ["SampleAttribute1"]=>
     array(3) {
       ["a"]=>
       int(1)
@@ -124,13 +125,15 @@ var_dump(SampleAttribute1::arrayOf($sample));/* array(1) {
 $attr = SampleAttribute1::of($sample);
 
 # ReflectionAttribute implements getReflection
-var_dump($attr->getReflection());/* object(ReflectionObject)#12 (1) {
+var_dump($attr->getReflection());
+/*= object(ReflectionObject)#14 (1) {
   ["name"]=>
-  string(16) "demo\SampleClass"
+  string(11) "SampleClass"
 } */
 
 # ReflectionAttribute implements getNamedArguments
-var_dump($attr->getNamedArguments());/* array(3) {
+var_dump($attr->getNamedArguments());
+/*= array(3) {
   ["a"]=>
   int(1)
   ["b"]=>
@@ -139,7 +142,8 @@ var_dump($attr->getNamedArguments());/* array(3) {
   int(9)
 } */
 # Compare getArguments and above
-var_dump($attr->getArguments());/* array(2) {
+var_dump($attr->getArguments());
+/*= array(2) {
   [0]=>
   int(1)
   ["c"]=>
@@ -147,30 +151,38 @@ var_dump($attr->getArguments());/* array(2) {
 } */
 
 # ReflectionAttribute implements getNamedArgument
-var_dump($attr->getNamedArgument('c'));/* int(9) */
+var_dump($attr->getNamedArgument('c'));
+/*= int(9) */
 # Same as
 $params = $attr->getArguments();
-var_dump(array_key_exists(2, $params) ? $params[2] : (array_key_exists('c', $params) ? $params['c'] : null));/* int(9) */
+var_dump(array_key_exists(2, $params) ? $params[2] : (array_key_exists('c', $params) ? $params['c'] : null));
+/*= int(9) */
 # But native doesn't do this
-var_dump($attr->getNamedArgument('b'));/* int(2) */
+var_dump($attr->getNamedArgument('b'));
+/*= int(2) */
 
 # Access private field by Friend
-var_dump($sample->privateField);/* int(123) */
-var_dump($subsample->privateField);/* int(123) */
+var_dump($sample->privateField);
+/*= int(123) */
+var_dump($subsample->privateField);
+/*= int(123) */
 
 # $privateField is invisible at var_dump by DebugInfo
-var_dump($sample);/* object(demo\SampleClass)#2 (1) {
+var_dump($sample);
+/*= object(SampleClass)#5 (1) {
   ["publicField"]=>
   int(456)
 } */
 
 # $privateField is visible/$publicField is invisible at json_encode by Json
-var_dump(json_encode($sample, JSON_PRETTY_PRINT));/* string(27) "{
+var_dump(json_encode($sample, JSON_PRETTY_PRINT));
+/*= string(27) "{
     "privateField": 123
 }" */
 
 # Rewrite SampleClass DocComment
 $sample->annotate();
+?>
 ```
 
 ## Note
@@ -197,6 +209,10 @@ Versioning is romantic versioning(no semantic versioning).
 - major: large BC break. e.g. change architecture, package, class etc
 - minor: small BC break. e.g. change arguments, return type etc
 - patch: no BC break. e.g. fix bug, add optional arguments, code format etc
+
+### 1.0.1
+
+- fix demo
 
 ### 1.0.0
 
