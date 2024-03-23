@@ -9,9 +9,9 @@ This package provides generic/useful attribute.
 
 ```json
 {
-    "require": {
-        "ryunosuke/utility-attribute": "*"
-    }
+  "require": {
+    "ryunosuke/utility-attribute": "*"
+  }
 }
 ```
 
@@ -32,13 +32,13 @@ use ryunosuke\utility\attribute\ClassTrait\FriendTrait;
 use ryunosuke\utility\attribute\ClassTrait\JsonTrait;
 use ryunosuke\utility\attribute\ReflectionAttribute;
 
-#[Attribute(Attribute::TARGET_ALL)]
+#[Attribute(Attribute::TARGET_ALL | Attribute::IS_REPEATABLE)]
 class SampleAttribute1 extends AbstractAttribute
 {
     public function __construct(int $a, $b = 2, $c = 3) { }
 }
 
-#[Attribute(Attribute::TARGET_ALL)]
+#[Attribute(Attribute::TARGET_ALL | Attribute::IS_REPEATABLE)]
 class SampleAttribute2 extends AbstractAttribute
 {
 }
@@ -105,11 +105,40 @@ var_dump(SampleAttribute2::of($subsample->method(...), ReflectionAttribute::SEE_
   }
 } */
 
+# Get attribute by following inheritance tree & seeing class also & merge repeatable
+var_dump(SampleAttribute1::arrayOf($sample->method(...), ReflectionAttribute::ALL));
+/*= array(2) {
+  [0]=>
+  object(ryunosuke\utility\attribute\ReflectionAttribute)#10 (1) {
+    ["SampleAttribute1"]=>
+    array(3) {
+      ["a"]=>
+      int(1)
+      ["b"]=>
+      int(2)
+      ["c"]=>
+      int(3)
+    }
+  }
+  [1]=>
+  object(ryunosuke\utility\attribute\ReflectionAttribute)#11 (1) {
+    ["SampleAttribute1"]=>
+    array(3) {
+      ["a"]=>
+      int(1)
+      ["b"]=>
+      int(2)
+      ["c"]=>
+      int(9)
+    }
+  }
+} */
+
 # Get attribute without Reflection
 var_dump(SampleAttribute1::arrayOf($sample));
 /*= array(1) {
   [0]=>
-  object(ryunosuke\utility\attribute\ReflectionAttribute)#14 (1) {
+  object(ryunosuke\utility\attribute\ReflectionAttribute)#12 (1) {
     ["SampleAttribute1"]=>
     array(3) {
       ["a"]=>
@@ -126,7 +155,7 @@ $attr = SampleAttribute1::of($sample);
 
 # ReflectionAttribute implements getReflection
 var_dump($attr->getReflection());
-/*= object(ReflectionObject)#14 (1) {
+/*= object(ReflectionObject)#12 (1) {
   ["name"]=>
   string(11) "SampleClass"
 } */
@@ -185,22 +214,31 @@ $sample->annotate();
 ?>
 ```
 
+| member                   | native                                                                                                         | utility                                                |
+|--------------------------|----------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| const by class-string    | (new ReflectionClassConstant(ClassName::class, 'CONST_NAME'))->getAttributes(AttributeClass::class)[0] ?? null | AttributeClass::of(ClassName::class . '::CONST_NAME')  |
+| property by class-string | (new ReflectionProperty(ClassName::class, 'field_name'))->getAttributes(AttributeClass::class)[0] ?? null      | AttributeClass::of(ClassName::class . '::$field_name') |
+| method by class-string   | (new ReflectionMethod(ClassName::class, 'method_name'))->getAttributes(AttributeClass::class)[0] ?? null       | AttributeClass::of(ClassName::class . '::method_name') |
+| const by $object         | (new ReflectionClassConstant($object, 'CONST_NAME'))->getAttributes(AttributeClass::class)[0] ?? null          | AttributeClass::of([$object, 'CONST_NAME'])            |
+| property by $object      | (new ReflectionProperty($object, 'field_name'))->getAttributes(AttributeClass::class)[0] ?? null               | AttributeClass::of([$object, '$field_name'])           |
+| method by $object        | (new ReflectionMethod($object, 'method_name'))->getAttributes(AttributeClass::class)[0] ?? null                | AttributeClass::of($object->method(...))               |
+
 ## Note
 
 個人的に php 標準の属性取得は下記の点で使いにくいです。
 
 - わざわざリフレクションを経由したくない
-  - 手元にある class-string やインスタンスでダイレクトに取得したい
+    - 手元にある class-string やインスタンスでダイレクトに取得したい
 - name 未指定で取得することはまずない
-  - それなら Attribute クラスを主体にして取れた方が便利
+    - それなら Attribute クラスを主体にして取れた方が便利
 - repeat な属性より single な属性の方が用途が多い
-  - それなら配列で返さず、?Attribute で返ってくる方が使いやすい
+    - それなら配列で返さず、?Attribute で返ってくる方が使いやすい
 - getArguments が本当に arguments を返すので使いづらい
-  - 上記のように妙な分岐を入れざるを得ないので名前付き引数で統一して取得したい
+    - 上記のように妙な分岐を入れざるを得ないので名前付き引数で統一して取得したい
 - クラスの属性をメンバーの属性のデフォルトとして使いたい
-  - 例えば PHPUnit の `@group` とかそういうやつ。シチュエーションは結構多い
+    - 例えば PHPUnit の `@group` とかそういうやつ。シチュエーションは結構多い
 - メソッドを委譲するだけで属性が消えてしまう
-  - 完全上書きなら元のメソッドの属性が欲しいことが多い
+    - 完全上書きなら元のメソッドの属性が欲しいことが多い
 
 ## Release
 
@@ -209,6 +247,10 @@ Versioning is romantic versioning(no semantic versioning).
 - major: large BC break. e.g. change architecture, package, class etc
 - minor: small BC break. e.g. change arguments, return type etc
 - patch: no BC break. e.g. fix bug, add optional arguments, code format etc
+
+### 1.0.2
+
+- [feature] MERGE_REPEATABLE を追加
 
 ### 1.0.1
 
