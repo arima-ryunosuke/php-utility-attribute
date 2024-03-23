@@ -1,6 +1,7 @@
 <?php
 namespace ryunosuke\Test;
 
+use AllAttribute;
 use AncestorAttribute;
 use Attribute;
 use ChildClass;
@@ -12,6 +13,7 @@ use ReflectionParameter;
 use ReflectionProperty;
 use ryunosuke\utility\attribute\Attribute\AbstractAttribute;
 use ryunosuke\utility\attribute\ReflectionAttribute;
+use SingleAttribute;
 
 class ReflectionAttributeTest extends \ryunosuke\Test\AbstractTestCase
 {
@@ -30,17 +32,43 @@ class ReflectionAttributeTest extends \ryunosuke\Test\AbstractTestCase
         that($debugInfo)->contains('ConcreteAttribute');
     }
 
+    function test_polyfill()
+    {
+        $refclass = new ReflectionClass(Dummy::class);
+        that(ReflectionAttribute::factory($refclass))->count(1);
+        that(ReflectionAttribute::factory($refclass, \AbstractAttribute::class))->count(0);
+        that(ReflectionAttribute::factory($refclass, \AbstractAttribute::class, ReflectionAttribute::IS_INSTANCEOF))->count(1);
+    }
+
     function test_factory()
     {
         $refclass = new ReflectionClass(Dummy::class);
-        that(ReflectionAttribute::factory($refclass))->count(0);
+        that(ReflectionAttribute::factory($refclass))->count(1);
         that(ReflectionAttribute::factory($refclass, null, ReflectionAttribute::FOLLOW_INHERITANCE))->count(1);
         that(ReflectionAttribute::factory($refclass, null, ReflectionAttribute::FOLLOW_INHERITANCE)[0]->getArguments())->is([2]);
+
+        $refmethod = $refclass->getMethod('single');
+        $single    = ReflectionAttribute::factory($refmethod, null, ReflectionAttribute::SEE_ALSO_CLASS | ReflectionAttribute::MERGE_REPEATABLE);
+        that($single)->count(2);
+        that($single[0]->getName())->is(SingleAttribute::class);
+        that($single[0]->getTarget())->is(Attribute::TARGET_METHOD);
+        that($single[0]->getArguments())->is([1]);
 
         $refclass = new ReflectionClass(ChildClass::class);
         that(ReflectionAttribute::factory($refclass))->count(1);
         that(ReflectionAttribute::factory($refclass, null, ReflectionAttribute::FOLLOW_INHERITANCE))->count(1);
         that(ReflectionAttribute::factory($refclass, null, ReflectionAttribute::FOLLOW_INHERITANCE)[0]->getArguments())->is([3]);
+        $merged = ReflectionAttribute::factory($refclass, AllAttribute::class, ReflectionAttribute::FOLLOW_INHERITANCE | ReflectionAttribute::MERGE_REPEATABLE);
+        that($merged)->count(3);
+        that($merged[0]->getName())->is(AllAttribute::class);
+        that($merged[0]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[0]->getArguments())->is([3]);
+        that($merged[1]->getName())->is(AllAttribute::class);
+        that($merged[1]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[1]->getArguments())->is([2]);
+        that($merged[2]->getName())->is(AllAttribute::class);
+        that($merged[2]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[2]->getArguments())->is([1]);
 
         $refconst = $refclass->getReflectionConstant('const');
         that(ReflectionAttribute::factory($refconst))->count(0);
@@ -50,6 +78,23 @@ class ReflectionAttributeTest extends \ryunosuke\Test\AbstractTestCase
         $inheritance = ReflectionAttribute::factory($refconst, null, ReflectionAttribute::FOLLOW_INHERITANCE);
         that($inheritance)->count(1);
         that($inheritance[0]->getArguments())->is([2]);
+        $merged = ReflectionAttribute::factory($refconst, AllAttribute::class, ReflectionAttribute::SEE_ALSO_CLASS | ReflectionAttribute::FOLLOW_INHERITANCE | ReflectionAttribute::MERGE_REPEATABLE);
+        that($merged)->count(5);
+        that($merged[0]->getName())->is(AllAttribute::class);
+        that($merged[0]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[0]->getArguments())->is([3]);
+        that($merged[1]->getName())->is(AllAttribute::class);
+        that($merged[1]->getTarget())->is(Attribute::TARGET_CLASS_CONSTANT);
+        that($merged[1]->getArguments())->is([2]);
+        that($merged[2]->getName())->is(AllAttribute::class);
+        that($merged[2]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[2]->getArguments())->is([2]);
+        that($merged[3]->getName())->is(AllAttribute::class);
+        that($merged[3]->getTarget())->is(Attribute::TARGET_CLASS_CONSTANT);
+        that($merged[3]->getArguments())->is([1]);
+        that($merged[4]->getName())->is(AllAttribute::class);
+        that($merged[4]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[4]->getArguments())->is([1]);
 
         $refproperty = $refclass->getProperty('property');
         that(ReflectionAttribute::factory($refproperty))->count(0);
@@ -59,6 +104,23 @@ class ReflectionAttributeTest extends \ryunosuke\Test\AbstractTestCase
         $inheritance = ReflectionAttribute::factory($refproperty, null, ReflectionAttribute::FOLLOW_INHERITANCE);
         that($inheritance)->count(1);
         that($inheritance[0]->getArguments())->is([2]);
+        $merged = ReflectionAttribute::factory($refproperty, AllAttribute::class, ReflectionAttribute::SEE_ALSO_CLASS | ReflectionAttribute::FOLLOW_INHERITANCE | ReflectionAttribute::ALL);
+        that($merged)->count(5);
+        that($merged[0]->getName())->is(AllAttribute::class);
+        that($merged[0]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[0]->getArguments())->is([3]);
+        that($merged[1]->getName())->is(AllAttribute::class);
+        that($merged[1]->getTarget())->is(Attribute::TARGET_PROPERTY);
+        that($merged[1]->getArguments())->is([2]);
+        that($merged[2]->getName())->is(AllAttribute::class);
+        that($merged[2]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[2]->getArguments())->is([2]);
+        that($merged[3]->getName())->is(AllAttribute::class);
+        that($merged[3]->getTarget())->is(Attribute::TARGET_PROPERTY);
+        that($merged[3]->getArguments())->is([1]);
+        that($merged[4]->getName())->is(AllAttribute::class);
+        that($merged[4]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[4]->getArguments())->is([1]);
 
         $refmethod = $refclass->getMethod('method');
         that(ReflectionAttribute::factory($refmethod))->count(0);
@@ -68,15 +130,49 @@ class ReflectionAttributeTest extends \ryunosuke\Test\AbstractTestCase
         $inheritance = ReflectionAttribute::factory($refmethod, null, ReflectionAttribute::FOLLOW_INHERITANCE);
         that($inheritance)->count(1);
         that($inheritance[0]->getArguments())->is([2]);
+        $merged = ReflectionAttribute::factory($refmethod, AllAttribute::class, ReflectionAttribute::SEE_ALSO_CLASS | ReflectionAttribute::FOLLOW_INHERITANCE | ReflectionAttribute::MERGE_REPEATABLE);
+        that($merged)->count(5);
+        that($merged[0]->getName())->is(AllAttribute::class);
+        that($merged[0]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[0]->getArguments())->is([3]);
+        that($merged[1]->getName())->is(AllAttribute::class);
+        that($merged[1]->getTarget())->is(Attribute::TARGET_METHOD);
+        that($merged[1]->getArguments())->is([2]);
+        that($merged[2]->getName())->is(AllAttribute::class);
+        that($merged[2]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[2]->getArguments())->is([2]);
+        that($merged[3]->getName())->is(AllAttribute::class);
+        that($merged[3]->getTarget())->is(Attribute::TARGET_METHOD);
+        that($merged[3]->getArguments())->is([1]);
+        that($merged[4]->getName())->is(AllAttribute::class);
+        that($merged[4]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[4]->getArguments())->is([1]);
 
         $refparameter = $refclass->getMethod('method')->getParameters()[0];
-        that(ReflectionAttribute::factory($refparameter))->count(0);
+        that(ReflectionAttribute::factory($refparameter))->count(1);
         $class = ReflectionAttribute::factory($refparameter, null, ReflectionAttribute::SEE_ALSO_CLASS);
         that($class)->count(1);
         that($class[0]->getArguments())->is([3]);
         $inheritance = ReflectionAttribute::factory($refparameter, null, ReflectionAttribute::FOLLOW_INHERITANCE);
         that($inheritance)->count(1);
-        that($inheritance[0]->getArguments())->is([2]);
+        that($inheritance[0]->getArguments())->is([3]);
+        $merged = ReflectionAttribute::factory($refparameter, AllAttribute::class, ReflectionAttribute::SEE_ALSO_CLASS | ReflectionAttribute::FOLLOW_INHERITANCE | ReflectionAttribute::MERGE_REPEATABLE);
+        that($merged)->count(5);
+        that($merged[0]->getName())->is(AllAttribute::class);
+        that($merged[0]->getTarget())->is(Attribute::TARGET_PARAMETER);
+        that($merged[0]->getArguments())->is([3]);
+        that($merged[1]->getName())->is(AllAttribute::class);
+        that($merged[1]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[1]->getArguments())->is([3]);
+        that($merged[2]->getName())->is(AllAttribute::class);
+        that($merged[2]->getTarget())->is(Attribute::TARGET_PARAMETER);
+        that($merged[2]->getArguments())->is([2]);
+        that($merged[3]->getName())->is(AllAttribute::class);
+        that($merged[3]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[3]->getArguments())->is([2]);
+        that($merged[4]->getName())->is(AllAttribute::class);
+        that($merged[4]->getTarget())->is(Attribute::TARGET_CLASS);
+        that($merged[4]->getArguments())->is([1]);
 
         $refmethod = $refclass->getMethod('method');
         that(ReflectionAttribute::factory($refmethod, AncestorAttribute::class, 0))->count(0);

@@ -1,14 +1,25 @@
 <?php
 
 #[Attribute(Attribute::TARGET_ALL)]
-class AllAttribute
+class AbstractAttribute
+{
+}
+
+#[Attribute(Attribute::TARGET_ALL | Attribute::IS_REPEATABLE)]
+class AllAttribute extends AbstractAttribute
 {
     public function __construct($arg) { }
 }
 
 #[Attribute(Attribute::TARGET_ALL)]
-class AncestorAttribute
+class AncestorAttribute extends AbstractAttribute
 {
+}
+
+#[Attribute(Attribute::TARGET_ALL)]
+class SingleAttribute extends AbstractAttribute
+{
+    public function __construct($arg) { }
 }
 
 #[AncestorAttribute]
@@ -44,9 +55,14 @@ class ParentClass extends AncestorClass
     }
 }
 
+#[SingleAttribute(2)]
 class Dummy extends ParentClass
 {
-
+    #[SingleAttribute(1)]
+    #[Undefined]
+    public function single()
+    {
+    }
 }
 
 #[AllAttribute(3)]
@@ -56,7 +72,11 @@ class ChildClass extends Dummy
 
     private $property = 3;
 
-    private function method($parameter = 3): ChildClass { }
+    private function method(
+        #[AllAttribute(3)]
+        $parameter = 3
+    ): ChildClass {
+    }
 
     private const child = 4;
 

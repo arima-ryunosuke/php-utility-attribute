@@ -116,6 +116,7 @@ class ReflectionTest extends \ryunosuke\Test\AbstractTestCase
         that(array_keys(iterator_to_array(Reflection::getAllMethods($refclass))))->is([
             "ChildClass::method",
             "ChildClass::child",
+            "Dummy::single",
             "ParentClass::method",
             "AncestorClass::method",
         ]);

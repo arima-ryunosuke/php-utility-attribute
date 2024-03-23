@@ -1,6 +1,7 @@
 <?php
 namespace ryunosuke\utility\attribute;
 
+use Attribute;
 use ReflectionAttribute as BaseReflectionAttribute;
 use ReflectionClass;
 use ReflectionClassConstant;
@@ -24,6 +25,8 @@ class ReflectionAttribute extends BaseReflectionAttribute
 {
     public const FOLLOW_INHERITANCE = 1 << 16;
     public const SEE_ALSO_CLASS     = 1 << 17;
+    public const MERGE_REPEATABLE   = 1 << 18;
+    public const ALL                = -1;
 
     private BaseReflectionAttribute $original;
     private Reflector               $reflection;
@@ -34,7 +37,7 @@ class ReflectionAttribute extends BaseReflectionAttribute
     public static function factory(Reflector $reflector, ?string $name = null, int $flags = 0): array
     {
         $polyfill = function ($reflector, $name, $flags) {
-            $flags &= ~static::SEE_ALSO_CLASS & ~static::FOLLOW_INHERITANCE;
+            $flags &= static::IS_INSTANCEOF;
 
             if (method_exists($reflector, 'getAttributes')) {
                 return array_map(fn($refattr) => new static($refattr, $reflector), $reflector->getAttributes($name, $flags)); // @codeCoverageIgnore
@@ -46,12 +49,47 @@ class ReflectionAttribute extends BaseReflectionAttribute
         };
 
         $attrs = $polyfill($reflector, $name, $flags);
-        if (!$attrs && ($flags & static::SEE_ALSO_CLASS) && $parent = Reflection::getClass($reflector)) {
-            $attrs = $polyfill($parent, $name, $flags);
+
+        if (($flags & static::SEE_ALSO_CLASS) && $parent = Reflection::getClass($reflector)) {
+            if ($flags & static::MERGE_REPEATABLE) {
+                $attrs = array_merge($attrs, $polyfill($parent, $name, $flags));
+            }
+            elseif (!$attrs) {
+                $attrs = $polyfill($parent, $name, $flags);
+            }
         }
-        if (!$attrs && ($flags & static::FOLLOW_INHERITANCE) && $parent = Reflection::getParent($reflector)) {
-            $attrs = static::factory($parent, $name, $flags);
+
+        if (($flags & static::FOLLOW_INHERITANCE) && $parent = Reflection::getParent($reflector)) {
+            if ($flags & static::MERGE_REPEATABLE) {
+                $attrs = array_merge($attrs, static::factory($parent, $name, $flags));
+            }
+            elseif (!$attrs) {
+                $attrs = static::factory($parent, $name, $flags);
+            }
         }
+
+        static $metadata = [];
+        if ($flags & static::MERGE_REPEATABLE) {
+            $counts = [];
+            foreach ($attrs as $n => $attr) {
+                $attrname = $attr->getName();
+
+                $metadata[$attrname]['repeatable'] ??= (function () use ($polyfill, $attrname) {
+                    if (!class_exists($attrname)) {
+                        return false;
+                    }
+                    $attributeReflection = $polyfill(new ReflectionClass($attrname), Attribute::class, ReflectionAttribute::IS_INSTANCEOF)[0];
+                    return (current($attributeReflection->getArguments())) & Attribute::IS_REPEATABLE;
+                })();
+
+                $counts[$attrname] = ($counts[$attrname] ?? 0) + 1;
+                if (!$metadata[$attrname]['repeatable'] && $counts[$attrname] > 1) {
+                    unset($attrs[$n]);
+                }
+            }
+            $attrs = array_values($attrs);
+        }
+
         return $attrs;
     }
 
