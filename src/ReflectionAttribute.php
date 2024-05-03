@@ -93,7 +93,7 @@ class ReflectionAttribute extends BaseReflectionAttribute
         $this->reflection = $reflection;
     }
 
-    public function __debugInfo(): ?array
+    public function __debugInfo(): array
     {
         return [$this->getName() => $this->getNamedArguments()];
     }
@@ -140,7 +140,7 @@ class ReflectionAttribute extends BaseReflectionAttribute
         })();
     }
 
-    public function getNamedArgument(string $name)
+    public function getNamedArgument(string $name): mixed
     {
         $namedArguments = $this->getNamedArguments();
         if (!array_key_exists($name, $namedArguments)) {

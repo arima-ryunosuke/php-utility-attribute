@@ -36,7 +36,7 @@ trait FriendTrait
         return false;
     }
 
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         foreach (Reflection::getAllProperties(new ReflectionClass(static::class)) as $property) {
             if ($property->name === $name) {
@@ -47,7 +47,7 @@ trait FriendTrait
         throw new ReflectionException("Undefined property: " . static::class . "::$$name");
     }
 
-    public function __call(string $name, array $arguments)
+    public function __call(string $name, array $arguments): mixed
     {
         foreach (Reflection::getAllMethods(new ReflectionClass(static::class)) as $method) {
             if ($method->name === $name) {
@@ -58,7 +58,7 @@ trait FriendTrait
         throw new ReflectionException("Call to undefined method " . static::class . "::$name()");
     }
 
-    public static function __callStatic(string $name, array $arguments)
+    public static function __callStatic(string $name, array $arguments): mixed
     {
         foreach (Reflection::getAllMethods(new ReflectionClass(static::class)) as $method) {
             if ($method->name === $name) {

@@ -7,8 +7,7 @@ use ryunosuke\utility\attribute\Utility\Reflection;
 
 trait JsonTrait
 {
-    #[\ReturnTypeWillChange]
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         $result = [];
         foreach (Reflection::mangleProperties($this) as $property) {

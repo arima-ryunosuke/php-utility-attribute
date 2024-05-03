@@ -55,21 +55,19 @@ class File implements ArrayAccess, IteratorAggregate, Countable
         return $this->filename;
     }
 
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return isset($this->linemap[$offset]);
     }
 
-    #[\ReturnTypeWillChange]
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         $current = $this->linemap[$offset + 0]['pos'];
         $next    = $this->linemap[$offset + 1]['pos'] ?? null;
         return substr($this->getContents(), $current, $next === null ? /*null for compatible 8.0*/ PHP_INT_MAX : $next - $current - 1);
     }
 
-    #[\ReturnTypeWillChange]
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         if ($offset === null) {
             $this->rewrite("\n$value", strlen($this->getContents()), null);
@@ -81,8 +79,7 @@ class File implements ArrayAccess, IteratorAggregate, Countable
         $this->rewrite($value, $current, $next === null ? null : $next - $current - 1);
     }
 
-    #[\ReturnTypeWillChange]
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         $this->offsetSet($offset, "");
     }
@@ -130,7 +127,7 @@ class File implements ArrayAccess, IteratorAggregate, Countable
         return $this->contents ??= str_replace(["\r\n", "\r"], "\n", file_get_contents($this->filename));
     }
 
-    public function putContents()
+    public function putContents(): void
     {
         if (isset($this->contents) && $this->changed) {
             file_put_contents($this->filename, $this->contents);
@@ -167,14 +164,14 @@ class File implements ArrayAccess, IteratorAggregate, Countable
         return $this->contents;
     }
 
-    public function rollback()
+    public function rollback(): void
     {
         $this->changed = false;
         unset($this->contents);
         $this->linemap();
     }
 
-    private function linemap()
+    private function linemap(): void
     {
         $pos = 0;
         foreach (preg_split('#\n#usm', $this->getContents()) as $n => $line) {

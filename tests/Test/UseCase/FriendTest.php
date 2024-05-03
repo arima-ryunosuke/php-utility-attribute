@@ -118,8 +118,8 @@ class FriendTest extends \ryunosuke\Test\AbstractTestCase
  * @auto-document-Friend:begin
  * @property string $protectedField
  * @property string $privateField
- * @method void privateMethod()
  * @method void protectedMethod()
+ * @method void privateMethod()
  * @auto-document-Friend:end
  */
 class AbstractFriend
