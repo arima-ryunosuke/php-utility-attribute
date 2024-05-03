@@ -9,7 +9,6 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
-use ReflectionNamedType;
 use ReflectionObject;
 use ReflectionParameter;
 use ReflectionProperty;
@@ -243,10 +242,6 @@ abstract class Reflection
             $types = array_map(fn($type) => class_exists($type) || interface_exists($type) ? "\\$type" : $type, $types);
         }
 
-        // for php7.4 (7.4's __toString doesn't contain "?")
-        if ($type instanceof ReflectionNamedType && $type->allowsNull() && $types[0] !== '?') {
-            array_unshift($types, '?');
-        }
         return implode('', $types);
     }
 

@@ -38,14 +38,7 @@ class ReflectionAttribute extends BaseReflectionAttribute
     {
         $polyfill = function ($reflector, $name, $flags) {
             $flags &= static::IS_INSTANCEOF;
-
-            if (method_exists($reflector, 'getAttributes')) {
-                return array_map(fn($refattr) => new static($refattr, $reflector), $reflector->getAttributes($name, $flags)); // @codeCoverageIgnore
-            }
-
-            static $provider = null;
-            $provider ??= new \ryunosuke\polyfill\attribute\Provider();
-            return array_map(fn($refattr) => new static($refattr, $reflector), $provider->getAttributes($reflector, $name, $flags));
+            return array_map(fn($refattr) => new static($refattr, $reflector), $reflector->getAttributes($name, $flags));
         };
 
         $attrs = $polyfill($reflector, $name, $flags);
