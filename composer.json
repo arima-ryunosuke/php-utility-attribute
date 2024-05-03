@@ -1,7 +1,7 @@
 {
   "config": {
     "platform": {
-      "php": "7.4"
+      "php": "8.0"
     }
   },
   "name": "ryunosuke/utility-attribute",
@@ -15,12 +15,11 @@
     }
   ],
   "require": {
-    "php": ">=7.4"
+    "php": ">=8.0"
   },
   "require-dev": {
     "phpunit/phpunit": "9.*",
-    "ryunosuke/phpunit-extension": "3.*",
-    "ryunosuke/polyfill-attribute": "*"
+    "ryunosuke/phpunit-extension": "4.*"
   },
   "autoload": {
     "psr-4": {
