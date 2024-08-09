@@ -124,7 +124,7 @@ class ReflectionTest extends \ryunosuke\Test\AbstractTestCase
 
     function test_mangleProperties()
     {
-        $object                = new class extends ChildClass {
+        $object                = new #[\AllowDynamicProperties] class extends ChildClass {
             private int $uninitialized;
             private int $anonymous = 123;
         };
