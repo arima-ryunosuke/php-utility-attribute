@@ -248,6 +248,10 @@ Versioning is romantic versioning(no semantic versioning).
 - minor: small BC break. e.g. change arguments, return type etc
 - patch: no BC break. e.g. fix bug, add optional arguments, code format etc
 
+## 1.1.1
+
+- [feature] php8.2 のエラーを修正
+
 ### 1.1.0
 
 - [change] php>=8.0
