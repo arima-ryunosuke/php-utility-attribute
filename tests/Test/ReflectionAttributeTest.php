@@ -194,6 +194,24 @@ class ReflectionAttributeTest extends \ryunosuke\Test\AbstractTestCase
         ]);
         that($attr)->getNamedArgument('name')->is('hoge');
         that($attr)->getNamedArgument('undefined')->wasThrown("undefined does not exist");
+
+        $attr = VariadicAttribute::of(ConcreteClass::class);
+        that($attr)->getNamedArguments()->is([
+            "mode"  => 123,
+            "files" => [
+                0   => "a",
+                1   => "b",
+                2   => "c",
+                "x" => "X",
+            ],
+        ]);
+        that($attr)->getNamedArgument('files')->is([
+            0   => "a",
+            1   => "b",
+            2   => "c",
+            "x" => "X",
+        ]);
+        that($attr)->getNamedArgument('undefined')->wasThrown("undefined does not exist");
     }
 
     function test_getNamedArguments_invalid()
@@ -264,8 +282,15 @@ class ConcreteAttribute2 extends AbstractAttribute
     public function __construct(int $index, string $name, $options = []) { }
 }
 
+#[Attribute]
+class VariadicAttribute extends AbstractAttribute
+{
+    public function __construct(int $mode, string ...$files) { }
+}
+
 #[UndefinedAttribute(0, dummy: 123)]
 #[ConcreteAttribute]
+#[VariadicAttribute(123, 'a', 'b', 'c', x: 'X')]
 class ConcreteClass
 {
     #[ConcreteAttribute]

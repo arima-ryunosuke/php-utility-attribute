@@ -119,24 +119,32 @@ class ReflectionAttribute extends BaseReflectionAttribute
                 throw new ReflectionException("[$attrname] Argument is specified but does not have constructor");
             }
 
-            $result = [];
+            $result = [
+                'argument' => [],
+                'variadic' => [],
+            ];
             foreach ($constructor->getParameters() as $parameter) {
                 $name = $parameter->getName();
-                if (array_key_exists($parameter->getName(), $arguments)) {
-                    $result[$name] = $arguments[$parameter->getName()];
+                if ($parameter->isVariadic()) {
+                    $result['variadic'][$name] = array_merge($arguments);
                 }
-                elseif (array_key_exists($parameter->getPosition(), $arguments)) {
-                    $result[$name] = $arguments[$parameter->getPosition()];
+                elseif (array_key_exists($key = $parameter->getName(), $arguments)) {
+                    $result['argument'][$name] = $arguments[$key];
+                    unset($arguments[$key]);
+                }
+                elseif (array_key_exists($key = $parameter->getPosition(), $arguments)) {
+                    $result['argument'][$name] = $arguments[$key];
+                    unset($arguments[$key]);
                 }
                 elseif ($parameter->isDefaultValueAvailable()) {
-                    $result[$name] = $parameter->getDefaultValue();
+                    $result['argument'][$name] = $parameter->getDefaultValue();
                 }
                 else {
                     throw new ReflectionException("[$attrname] Parameter {$parameter->getName()} does not have default value");
                 }
             }
-            assert(new $attrname(...array_values($result)));
-            return $result;
+            assert(new $attrname(...$result['argument'], ...($result['variadic'] ? reset($result['variadic']) : [])));
+            return $result['argument'] + $result['variadic'];
         })();
     }
 
