@@ -16,6 +16,9 @@ class DebugInfoTest extends \ryunosuke\Test\AbstractTestCase
         that($debugInfo)->contains('anonymousField:');
         that($debugInfo)->contains('visibleField:' . AbstractDebugInfo::class . ':private');
         that($debugInfo)->contains('visibleField:' . ConcreteDebugInfo::class . ':private');
+        that($debugInfo)->contains('stdClass#');
+        that($debugInfo)->contains('[a] => X');
+        that($debugInfo)->contains('[b] => B');
         that($debugInfo)->notContains('invisibleField');
         that($debugInfo)->notContains('publicSelf');
     }
@@ -41,10 +44,23 @@ class ConcreteDebugInfo extends AbstractDebugInfo
     #[DebugInfo(true)]
     private $visibleField;
 
+    #[DebugInfo("%s#%s")]
+    public $object;
+
+    #[DebugInfo(['a' => 'X'])]
+    public $array = [
+        'a' => 'A',
+        'b' => 'B',
+    ];
+
     public $publicSelf;
 
     public function __construct()
     {
         $this->publicSelf = $this;
+        $this->object     = (object) [
+            'a' => 'A',
+            'b' => 'B',
+        ];
     }
 }
