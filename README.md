@@ -248,6 +248,10 @@ Versioning is romantic versioning(no semantic versioning).
 - minor: small BC break. e.g. change arguments, return type etc
 - patch: no BC break. e.g. fix bug, add optional arguments, code format etc
 
+## 1.1.3
+
+- [feature] DebugInfo の object/array の変換機能
+
 ## 1.1.2
 
 - [fixbug] 可変長引数の場合に値が取れない不具合
